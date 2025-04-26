@@ -2,6 +2,11 @@
 
 A simple Python script to download and rename `.mp4` videos from a GoPro HERO7 (or compatible device) when connected via USB.
 
+### Note:
+I was running Bazzite Linux when creating this script, it should work fine on most linux dists, depending on where they mount a connect gopro camera. 
+
+No guarantees though.
+
 ### But why?
 Well, gopro won't win any rewards regarding how they name the files the camera create. In my case, a Hero7, it was but impossible to figure out which was first of the files etc. This script somewhat solves this since it names them based on created timestamp. Easy peasy.
 (You are welcome)
