@@ -5,6 +5,7 @@ import json
 from errors import DeviceNotFoundError
 from errors import FailedToCreateTargetFolderError
 from errors import UnsupportedRuntimeEnvironmentError
+from errors import FfmpegNotFoundError
 from datetime import datetime
 from tqdm import tqdm
 
@@ -51,11 +52,16 @@ def find_gopro(environment):
             
     raise DeviceNotFoundError('No GoPro found!')
 
-def get_media_files(gopro_path):
+def get_media_files(gopro_path, runtime_env):
     media_files = []
 
-    media_path = os.path.join(gopro_path, 'GoPro MTP Client Disk Volume/DCIM/')
+    if runtime_env == ENV_LINUX_GNOME_DESKTOP:
+        media_path = os.path.join(gopro_path, 'GoPro MTP Client Disk Volume/DCIM/')
+    else:
+        # On Windows or manual mode, assume gopro_path *is* the base folder
+        media_path = gopro_path
 
+#handle if no files found
     for root, dirs, files in os.walk(media_path):
         for filename in files:
             if not filename.lower().endswith('.mp4'):
@@ -65,10 +71,6 @@ def get_media_files(gopro_path):
             print(f'adding {filename}')
             media_files.append(file_path)
 
-    # media_files = [
-    #     'omg1',
-    #     'omg2'
-    # ]
     return media_files
 
 def get_created_date_from_metadata(file_path):
@@ -138,7 +140,22 @@ def print_confirmation_summary(destination_folder, files_to_copy):
         destination_path = os.path.join(destination_folder, file['new_filename'])
         print(f"{file['source']} -> {destination_path}")
 
+def check_ffprobe_available():
+    try:
+        subprocess.run(['ffprobe', '-version'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        raise FfmpegNotFoundError("❌ 'ffprobe' not found in PATH. Please install ffmpeg to continue.")
+
+
 def main():
+    try:
+        check_ffprobe_available()
+    except FfmpegNotFoundError as e:
+        print(e)
+        print('👉 On Windows: choco install ffmpeg -y')
+        print('👉 On Linux:   sudo apt install ffmpeg')
+        sys.exit(1)
+
     destination_folder = input('Enter destination folder: \n').strip()
     destination_folder = os.path.expanduser(destination_folder)
 
@@ -149,7 +166,7 @@ def main():
         print(error)
         sys.exit(1)
 
-    media_files = get_media_files(connected_gopro)
+    media_files = get_media_files(connected_gopro, runtime_env)
     files_to_copy = create_list_to_copy(media_files)
 
     print_confirmation_summary(destination_folder, files_to_copy)

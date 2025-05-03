@@ -7,5 +7,9 @@ class FailedToCreateTargetFolderError(Exception):
     pass
 
 class UnsupportedRuntimeEnvironmentError(Exception):
-    """Raised the runtime environment isn't supported"""
+    """Raised when the runtime environment isn't supported"""
+    pass
+
+class FfmpegNotFoundError(Exception):
+    """Raised when ffmpeg is missing"""
     pass
