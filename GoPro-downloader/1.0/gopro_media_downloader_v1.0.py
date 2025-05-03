@@ -1,7 +1,6 @@
 import os
 import subprocess
 import json
-import shutil
 from datetime import datetime
 from tqdm import tqdm
 
@@ -14,7 +13,7 @@ def find_gopro():
     for dir_name in os.listdir(path):
         if 'GoPro' in dir_name:
             print('Woohoo, if works, here it is:')
-            
+
             gopro_found = True
             return os.path.join(path, dir_name)
             
