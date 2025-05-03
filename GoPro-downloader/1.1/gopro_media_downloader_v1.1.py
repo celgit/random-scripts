@@ -21,9 +21,6 @@ def get_runtime_env():
     # macos?
     # other
 
-    print('WHAT THE FUCK ###############################')
-    print(os.name)
-
     if os.name == 'nt':
         return ENV_WINDOWS
 
@@ -37,8 +34,8 @@ def find_gopro(environment):
         print('⚠️ Windows cannot access GoPro via path directly (MTP mode).')
         print('Please copy the files manually to a local folder.')
 
-        exit('omg works')
-        # return input("Enter full path to that folder: ").strip()
+        # exit('omg works')
+        return input("Enter full path to that folder: ").strip()
     if environment == 'macos':
         print('MacOs, not finished yet!')
     if environment == 'other':
