@@ -1,7 +1,6 @@
 import os
 import subprocess
 import json
-import shutil
 from datetime import datetime
 from tqdm import tqdm
 
@@ -9,31 +8,25 @@ def find_gopro():
     user_id = os.getuid()
     path = f'/run/user/{user_id}/gvfs/'
 
-    gopro_found = False
-
     for dir_name in os.listdir(path):
         if 'GoPro' in dir_name:
             print('Woohoo, if works, here it is:')
-            
-            gopro_found = True
+
             return os.path.join(path, dir_name)
             
-    if not gopro_found:
-        print('No GoPro found, please connect it')
-        exit(1)
+    return False
 
 def get_media_files(gopro_path):
     media_files = []
 
-    if gopro_path:
-        media_path = os.path.join(gopro_path, 'GoPro MTP Client Disk Volume/DCIM/')
+    media_path = os.path.join(gopro_path, 'GoPro MTP Client Disk Volume/DCIM/')
 
-        for root, dirs, files in os.walk(media_path):
-            for filename in files:
-                if filename.lower().endswith('.mp4'):
-                        file_path = os.path.join(root, filename)
-                        print(f'adding {filename}')
-                        media_files.append(file_path)
+    for root, dirs, files in os.walk(media_path):
+        for filename in files:
+            if filename.lower().endswith('.mp4'):
+                    file_path = os.path.join(root, filename)
+                    print(f'adding {filename}')
+                    media_files.append(file_path)
                         
     return media_files
 
@@ -112,7 +105,13 @@ def main():
     destination_folder = input('Enter destination folder: \n').strip()
     destination_folder = os.path.expanduser(destination_folder)
 
-    media_files = get_media_files(find_gopro())
+    connected_gopro = find_gopro()
+
+    if not connected_gopro:
+        print('No GoPro found, please connect it')
+        exit(1)
+
+    media_files = get_media_files(connected_gopro)
     files_to_copy = create_list_to_copy(media_files)
 
     print_confirmation_summary(destination_folder, files_to_copy)
