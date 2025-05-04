@@ -7,6 +7,7 @@ ENV_OTHER = 'other'
 
 def get_gvfs_mount_path():
     user_id = os.getuid()
+    
     return f"/run/user/{user_id}/gvfs"
 
 def get_runtime_env():
@@ -14,6 +15,7 @@ def get_runtime_env():
         return ENV_WINDOWS
     if os.path.isdir(get_gvfs_mount_path()):
         return ENV_LINUX_GNOME_DESKTOP
+    
     raise UnsupportedRuntimeEnvironmentError('Unsupported runtime environment')
 
 def find_gopro(environment):
@@ -31,4 +33,5 @@ def find_gopro(environment):
             if 'GoPro' in dir_name:
                 print('Woohoo, if works, here it is:')
                 return os.path.join(path, dir_name)
+            
     raise DeviceNotFoundError('No GoPro found!')

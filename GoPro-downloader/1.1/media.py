@@ -13,7 +13,9 @@ def get_media_files(gopro_path, runtime_env):
         for filename in files:
             if not filename.lower().endswith('.mp4'):
                 continue
+
             file_path = os.path.join(root, filename)
+
             print(f'adding {filename}')
             media_files.append(file_path)
 
@@ -28,10 +30,12 @@ def get_created_date_from_metadata(file_path):
     ]
     result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     metadata = json.loads(result.stdout)
+
     return metadata['format']['tags']['creation_time']
 
 def format_creation_time(creation_time_str):
     formatted_datetime = datetime.fromisoformat(creation_time_str.replace('Z', ''))
+
     return formatted_datetime.strftime('%Y-%m-%d_%H-%M-%S')
 
 def create_list_to_copy(media_files):
@@ -41,6 +45,7 @@ def create_list_to_copy(media_files):
         formatted_time = format_creation_time(creation_time)
         new_filename = f'{formatted_time}.mp4'
         files_to_copy.append({'source': file_path, 'new_filename': new_filename})
+        
     return files_to_copy
 
 def print_confirmation_summary(destination_folder, files_to_copy):
