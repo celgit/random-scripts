@@ -1,1 +1,3 @@
 GoPro-downloader/.idea
+__pycache__/
+*.py[cod]

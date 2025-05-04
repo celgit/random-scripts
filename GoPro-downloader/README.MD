@@ -7,6 +7,10 @@ I was running Bazzite Linux when creating this script, it should work fine on mo
 
 No guarantees though.
 
+### Note2:
+With version 1.1 I added support for Windows since I removed bazzite and couldn't test it on my system anymore.
+The old "gnome linux"-support is still there, it detects it automatically and should work fine there still.
+
 ### But why?
 Well, gopro won't win any rewards regarding how they name the files the camera create. In my case, a Hero7, it was but impossible to figure out which was first of the files etc. This script somewhat solves this since it names them based on created timestamp. Easy peasy.
 (You are welcome)
