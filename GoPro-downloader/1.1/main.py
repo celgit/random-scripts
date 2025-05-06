@@ -1,15 +1,15 @@
-from env import get_runtime_env, find_gopro
-from media import (
+from src.env import get_runtime_env, find_gopro
+from src.media import (
     get_media_files,
     create_list_to_copy,
     print_confirmation_summary,
     copy_files
 )
-from utils import (
+from src.utils import (
     check_ffprobe_available,
     create_target_folder_if_not_exists
 )
-from errors import (
+from src.errors import (
     DeviceNotFoundError,
     FailedToCreateTargetFolderError,
     UnsupportedRuntimeEnvironmentError,
