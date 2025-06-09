@@ -3,7 +3,7 @@ import subprocess
 import json
 from datetime import datetime
 from tqdm import tqdm
-from env import ENV_LINUX_GNOME_DESKTOP
+from .env import ENV_LINUX_GNOME_DESKTOP
 
 def get_media_files(gopro_path, runtime_env):
     media_files = []

@@ -1,5 +1,5 @@
 import os
-from errors import DeviceNotFoundError, UnsupportedRuntimeEnvironmentError
+from .errors import DeviceNotFoundError, UnsupportedRuntimeEnvironmentError
 
 ENV_LINUX_GNOME_DESKTOP = 'gvfs'
 ENV_WINDOWS = 'windows'

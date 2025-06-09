@@ -1,6 +1,6 @@
 import os
 import subprocess
-from errors import FailedToCreateTargetFolderError, FfmpegNotFoundError
+from .errors import FailedToCreateTargetFolderError, FfmpegNotFoundError
 
 def check_ffprobe_available():
     try:
