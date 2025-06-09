@@ -50,12 +50,13 @@ def main():
 
     try:
         create_target_folder_if_not_exists(destination_folder)
-        print('\nALL DONE!\n')
     except FailedToCreateTargetFolderError as error:
         print(error)
         sys.exit(1)
 
     copy_files(destination_folder, files_to_copy)
+
+    print('\nALL DONE!\n')
 
 if __name__ == '__main__':
     main()
