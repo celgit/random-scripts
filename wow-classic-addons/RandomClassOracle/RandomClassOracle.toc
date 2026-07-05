@@ -1,0 +1,8 @@
+## Interface: 11507
+## Title: Random Class Dice
+## Notes: Rolls your next WoW Classic class after you level and reach a rested area.
+## Author: cel
+## Version: 0.8.1
+## SavedVariables: RandomClassOracleDB
+
+RandomClassOracle.lua
