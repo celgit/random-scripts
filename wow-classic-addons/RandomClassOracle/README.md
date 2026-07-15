@@ -16,6 +16,7 @@ If you are using another Classic client flavor, use that client's `Interface/Add
 
 ```text
 /rcd roll
+/rcd options
 /rcd testding
 /rcd testdeath
 /rcd show
@@ -26,11 +27,15 @@ If you are using another Classic client flavor, use that client's `Interface/Add
 
 `/rcd roll` manually rolls a faction-aware class and shows the result window. It only works in a rested area.
 
+`/rcd options` opens class inclusion options.
+
 `/rcd testding` previews the level-up prompt without changing pending state.
 
 `/rcd testdeath` previews the hardcore death prompt without changing pending state.
 
 Death-triggered rolls exclude the class you died on. Level-up and manual rested rolls can still choose your current class.
+
+Class inclusion options are faction-aware and can also be opened from the AddOns options panel when supported by the client.
 
 `/rcd show` opens the result window.
 

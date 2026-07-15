@@ -2,7 +2,7 @@
 ## Title: Random Class Dice
 ## Notes: Rolls your next WoW Classic class after you level and reach a rested area.
 ## Author: cel
-## Version: 0.8.1
+## Version: 0.9.0
 ## SavedVariables: RandomClassOracleDB
 
 RandomClassOracle.lua

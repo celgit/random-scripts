@@ -30,6 +30,7 @@ local DEFAULT_DB = {
     pendingReason = nil,
     pendingLevel = nil,
     recentPicks = {},
+    enabledClasses = {},
     soundEnabled = true,
 }
 
@@ -46,6 +47,8 @@ local CLASS_NAME_TO_TOKEN = {
 }
 
 local diceFrame
+local optionsFrame
+local optionCheckboxes = {}
 local resultText
 local ShowResult
 local activePromptReason
@@ -69,6 +72,16 @@ end
 local function NormalizeRecentPicks()
     for index, recentPick in ipairs(RandomClassOracleDB.recentPicks) do
         RandomClassOracleDB.recentPicks[index] = CLASS_NAME_TO_TOKEN[recentPick] or recentPick
+    end
+end
+
+local function EnsureEnabledClasses()
+    RandomClassOracleDB.enabledClasses = RandomClassOracleDB.enabledClasses or {}
+
+    for _, classToken in pairs(CLASS_NAME_TO_TOKEN) do
+        if RandomClassOracleDB.enabledClasses[classToken] == nil then
+            RandomClassOracleDB.enabledClasses[classToken] = true
+        end
     end
 end
 
@@ -171,6 +184,140 @@ local function GetClassPool()
     return {}
 end
 
+local function IsClassEnabled(classToken)
+    EnsureEnabledClasses()
+    return RandomClassOracleDB.enabledClasses[classToken] ~= false
+end
+
+local function GetEnabledClassCount()
+    local enabledCount = 0
+
+    for _, classInfo in ipairs(GetClassPool()) do
+        if IsClassEnabled(classInfo.token) then
+            enabledCount = enabledCount + 1
+        end
+    end
+
+    return enabledCount
+end
+
+local function RefreshOptionsFrame()
+    if not optionsFrame then
+        return
+    end
+
+    local classes = GetClassPool()
+
+    for index, classInfo in ipairs(classes) do
+        local checkbox = optionCheckboxes[index]
+
+        if not checkbox then
+            checkbox = CreateFrame("CheckButton", nil, optionsFrame, "InterfaceOptionsCheckButtonTemplate")
+            checkbox:SetPoint("TOPLEFT", optionsFrame, "TOPLEFT", 24, -58 - ((index - 1) * 28))
+            checkbox:SetScript("OnClick", function(self)
+                RandomClassOracleDB.enabledClasses[self.classToken] = self:GetChecked() == true
+                wipe(RandomClassOracleDB.recentPicks)
+            end)
+
+            optionCheckboxes[index] = checkbox
+        end
+
+        checkbox.classToken = classInfo.token
+        checkbox.Text:SetText(classInfo.name)
+        checkbox:SetChecked(IsClassEnabled(classInfo.token))
+        checkbox:Show()
+    end
+
+    for index = #classes + 1, #optionCheckboxes do
+        optionCheckboxes[index]:Hide()
+    end
+end
+
+local function EnableAllClasses()
+    EnsureEnabledClasses()
+
+    for _, classInfo in ipairs(GetClassPool()) do
+        RandomClassOracleDB.enabledClasses[classInfo.token] = true
+    end
+
+    wipe(RandomClassOracleDB.recentPicks)
+    RefreshOptionsFrame()
+end
+
+local function CreateOptionsFrame()
+    if optionsFrame then
+        RefreshOptionsFrame()
+        return optionsFrame
+    end
+
+    optionsFrame = CreateFrame("Frame", "RandomClassDiceOptionsFrame", UIParent, "BasicFrameTemplateWithInset")
+    optionsFrame:SetSize(320, 330)
+    optionsFrame:SetPoint("CENTER")
+    optionsFrame:SetMovable(true)
+    optionsFrame:EnableMouse(true)
+    optionsFrame:RegisterForDrag("LeftButton")
+    optionsFrame:SetScript("OnDragStart", optionsFrame.StartMoving)
+    optionsFrame:SetScript("OnDragStop", optionsFrame.StopMovingOrSizing)
+    optionsFrame:Hide()
+
+    optionsFrame.title = optionsFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    optionsFrame.title:SetPoint("TOPLEFT", 14, -8)
+    optionsFrame.title:SetText("Random Class Dice Options")
+
+    local intro = optionsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    intro:SetPoint("TOPLEFT", 24, -36)
+    intro:SetText("Classes included in rolls:")
+
+    local enableAllButton = CreateFrame("Button", nil, optionsFrame, "UIPanelButtonTemplate")
+    enableAllButton:SetSize(96, 24)
+    enableAllButton:SetPoint("BOTTOMLEFT", 24, 16)
+    enableAllButton:SetText("Enable All")
+    enableAllButton:SetScript("OnClick", EnableAllClasses)
+
+    local closeButton = CreateFrame("Button", nil, optionsFrame, "UIPanelButtonTemplate")
+    closeButton:SetSize(96, 24)
+    closeButton:SetPoint("BOTTOMRIGHT", -24, 16)
+    closeButton:SetText("Close")
+    closeButton:SetScript("OnClick", function()
+        optionsFrame:Hide()
+    end)
+
+    RefreshOptionsFrame()
+    return optionsFrame
+end
+
+local function OpenOptionsFrame()
+    CreateOptionsFrame()
+    RefreshOptionsFrame()
+    optionsFrame:Show()
+end
+
+local function RegisterInterfaceOptions()
+    local panel = CreateFrame("Frame", "RandomClassDiceInterfaceOptionsPanel")
+    panel.name = "Random Class Dice"
+
+    local title = panel:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+    title:SetPoint("TOPLEFT", 16, -16)
+    title:SetText("Random Class Dice")
+
+    local description = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    description:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -12)
+    description:SetText("Use /rcd options to choose which classes are included in rolls.")
+
+    local openButton = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
+    openButton:SetSize(120, 24)
+    openButton:SetPoint("TOPLEFT", description, "BOTTOMLEFT", 0, -16)
+    openButton:SetText("Open Options")
+    openButton:SetScript("OnClick", OpenOptionsFrame)
+
+    if Settings and Settings.RegisterCanvasLayoutCategory and Settings.RegisterAddOnCategory then
+        local category = Settings.RegisterCanvasLayoutCategory(panel, panel.name)
+        Settings.RegisterAddOnCategory(category)
+    elseif InterfaceOptions_AddCategory then
+        InterfaceOptions_AddCategory(panel)
+    end
+end
+
 local function HasRecentPick(classToken)
     for _, recentPick in ipairs(RandomClassOracleDB.recentPicks) do
         if recentPick == classToken then
@@ -189,7 +336,7 @@ local function PickClass(excludeCurrentClass)
     for _, classInfo in ipairs(classes) do
         local isCurrentClass = excludeCurrentClass and classInfo.token == currentClassToken
 
-        if not isCurrentClass and not HasRecentPick(classInfo.token) then
+        if IsClassEnabled(classInfo.token) and not isCurrentClass and not HasRecentPick(classInfo.token) then
             table.insert(available, classInfo)
         end
     end
@@ -198,7 +345,7 @@ local function PickClass(excludeCurrentClass)
         wipe(RandomClassOracleDB.recentPicks)
 
         for _, classInfo in ipairs(classes) do
-            if not (excludeCurrentClass and classInfo.token == currentClassToken) then
+            if IsClassEnabled(classInfo.token) and not (excludeCurrentClass and classInfo.token == currentClassToken) then
                 table.insert(available, classInfo)
             end
         end
@@ -219,10 +366,15 @@ ShowResult = function(allowOutsideRested, excludeCurrentClass)
         return false
     end
 
+    if GetEnabledClassCount() == 0 then
+        Print("No classes are enabled. Open /rcd options to include at least one class.")
+        return false
+    end
+
     local className = PickClass(excludeCurrentClass)
 
     if not className then
-        Print("I could not find a class pool for this character.")
+        Print("No eligible classes are available. Open /rcd options to include more classes.")
         return false
     end
 
@@ -347,6 +499,8 @@ events:SetScript("OnEvent", function(_, event, loadedAddonName, newLevel)
         end
 
         NormalizeRecentPicks()
+        EnsureEnabledClasses()
+        RegisterInterfaceOptions()
         return
     end
 
@@ -397,6 +551,11 @@ SlashCmdList["RANDOMCLASSDICE"] = function(message)
         return
     end
 
+    if message == "options" then
+        OpenOptionsFrame()
+        return
+    end
+
     if message == "status" then
         PrintStatus()
         return
@@ -427,5 +586,5 @@ SlashCmdList["RANDOMCLASSDICE"] = function(message)
         return
     end
 
-    Print("Commands: /rcd roll, /rcd testding, /rcd testdeath, /rcd show, /rcd status, /rcd sound, /rcd reset")
+    Print("Commands: /rcd roll, /rcd options, /rcd testding, /rcd testdeath, /rcd show, /rcd status, /rcd sound, /rcd reset")
 end
